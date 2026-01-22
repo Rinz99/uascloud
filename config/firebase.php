@@ -3,7 +3,7 @@
 return [
 
     'credentials' => [
-        'file' => env('FIREBASE_CREDENTIALS'),
+        'file' => json_decode(env('FIREBASE_CREDENTIALS', true)),
     ],
 
     'database' => [
