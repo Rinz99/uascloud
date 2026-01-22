@@ -72,16 +72,16 @@
                     </thead>
                     <tbody id="inventori-body">
                         @php $no = 1; @endphp
-                        @if($data)
+                        @if(!empty($data))
                             @foreach($data as $item)
                                 <tr>
                                     <td>{{ $no++ }}</td>
-                                    <td>{{ $item['nama_alat'] }}</td>
-                                    <td>{{ $item['kode_alat'] }}</td>
-                                    <td>{{ $item['stok'] }}</td>
-                                    <td>{{ $item['lokasi'] }}</td>
-                                    <td>{{ $item['kondisi'] }}</td>
-                                    <td>{{ $item['petugas'] }}</td>
+                                    <td>{{ $item['nama_alat'] ?? '-' }}</td>
+                                    <td>{{ $item['kode_alat'] ?? '-' }}</td>
+                                    <td>{{ $item['stok'] ?? '-' }}</td>
+                                    <td>{{ $item['lokasi'] ?? '-' }}</td>
+                                    <td>{{ $item['kondisi'] ?? '-'}}</td>
+                                    <td>{{ $item['petugas'] ?? '-'}}</td>
                                 </tr>
                             @endforeach
                         @else

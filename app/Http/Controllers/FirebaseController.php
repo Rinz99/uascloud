@@ -6,32 +6,32 @@ use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Kreait\Firebase\Auth;
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Database;
 
 class FirebaseController extends Controller
 {
-    protected $firebase;
+    protected $database;
 
     public function __construct(FirebaseService $firebase)
     {
-        $this->firebase = $firebase->getDatabase();
+        $this->database = $firebase->getDatabase();
     }
 
+    // DASHBOARD
     public function index()
     {
-        $factory = (new Factory)
-            ->withServiceAccount('C:/laragon/www/uascloud/storage/app/firebase/firebase_credentials.json')
-            ->withDatabaseUri(config('firebase.database.url'));
+        // AMAN: cegah null
+        $data = $this->database
+            ->getReference('inventori_lab')
+            ->getValue() ?? [];
 
-        $database = $factory->createDatabase();
-        $data = $database->getReference('inventori_lab')->getValue();
-
+        // Quote API (aman)
         $quote = null;
         try {
-            $response = Http::get('https://quotes.liupurnomo.com/api/quotes/random');
+            $response = Http::timeout(3)
+                ->get('https://quotes.liupurnomo.com/api/quotes/random');
+
             if ($response->successful()) {
-                $quote = $response->json()['data'];
+                $quote = $response->json()['data'] ?? null;
             }
         } catch (\Exception $e) {
             $quote = null;
@@ -40,30 +40,7 @@ class FirebaseController extends Controller
         return view('dashboard', compact('data', 'quote'));
     }
 
-
-    public function test()
-    {
-        $this->firebase->getReference("testing")
-            ->set([
-                'message' => 'Firebase Integration Successful!'
-            ]);
-
-        return 'Firebase Connected and Test Data Added!';
-    }
-
-    public function firebaseLogin(Request $request, Auth $auth)
-    {
-        $verifiedIdToken = $auth->verifyIdToken($request->token);
-        $uid = $verifiedIdToken->claims()->get('sub');
-
-        session(['firebase_uid' => $uid]);
-
-        return response()->json([
-            'status' => 'success',
-            'uid' => $uid
-        ]);
-    }
-
+    // SIMPAN DATA
     public function store(Request $request)
     {
         $request->validate([
@@ -75,22 +52,43 @@ class FirebaseController extends Controller
             'petugas' => 'required',
         ]);
 
-        $factory = (new Factory)
-            ->withServiceAccount('C:/laragon/www/uascloud/storage/app/firebase/firebase_credentials.json')
-            ->withDatabaseUri(config('firebase.database.url'));
+        $this->database
+            ->getReference('inventori_lab')
+            ->push([
+                'nama_alat' => $request->nama,
+                'kode_alat' => $request->kode,
+                'stok' => $request->stok,
+                'lokasi' => $request->lokasi,
+                'kondisi' => $request->kondisi,
+                'petugas' => $request->petugas,
+                'user_id' => session('firebase_uid'),
+                'tanggal_input' => now()->toDateString(),
+            ]);
 
-        $database = $factory->createDatabase();
+        return redirect('/dashboard')->with('success', 'Data berhasil disimpan');
+    }
 
-        $database->getReference('inventori_lab')->push([
-            'nama_alat' => $request->nama,
-            'kode_alat' => $request->kode,
-            'stok' => $request->stok,
-            'lokasi' => $request->lokasi,
-            'kondisi' => $request->kondisi,
-            'petugas' => $request->petugas,
-            'user_id' => session('firebase_uid'),
-            'tanggal_input' => now()->toDateString(),
+    // TEST FIREBASE
+    public function test()
+    {
+        $this->database->getReference("testing")->set([
+            'message' => 'Firebase Integration Successful!'
         ]);
-        return redirect('dashboard')->with('success', 'Data berhasil disimpan');
+
+        return 'Firebase Connected!';
+    }
+
+    // LOGIN FIREBASE
+    public function firebaseLogin(Request $request, Auth $auth)
+    {
+        $verifiedIdToken = $auth->verifyIdToken($request->token);
+        $uid = $verifiedIdToken->claims()->get('sub');
+
+        session(['firebase_uid' => $uid]);
+
+        return response()->json([
+            'status' => 'success',
+            'uid' => $uid
+        ]);
     }
 }
