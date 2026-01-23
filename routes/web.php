@@ -3,13 +3,10 @@
 use App\Http\Controllers\FirebaseController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('/dashboard');
-});
+Route::get('/', [FirebaseController::class, 'index']);
+Route::get('/dashboard', [FirebaseController::class, 'index']);
 
 Route::get('/firebase-test', [FirebaseController::class, 'test']);
-
-Route::get('/dashboard', [FirebaseController::class, 'index',]);
 
 Route::get('/login', function () {
     return view('auth.login');
