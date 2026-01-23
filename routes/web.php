@@ -4,7 +4,7 @@ use App\Http\Controllers\FirebaseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('/dashboard');
 });
 
 Route::get('/firebase-test', [FirebaseController::class, 'test']);
