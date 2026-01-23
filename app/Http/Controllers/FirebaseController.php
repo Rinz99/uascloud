@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Kreait\Firebase\Auth;
 
 class FirebaseController extends Controller
 {
